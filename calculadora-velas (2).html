@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Velas · Aqua Marine Store</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --pink:       #D988A0;
+    --pink-light: #E8AABE;
+    --pink-deep:  #C06882;
+    --bg:         #1A1214;
+    --bg2:        #221619;
+    --surface:    #2C1C20;
+    --surface2:   #381F25;
+    --border:     #4A2830;
+    --border-lt:  #5C3540;
+    --text:       #F5E8ED;
+    --text-muted: #A07885;
+    --text-dim:   #6B4A55;
+    --amber:      #C0956A;
+    --radius:     18px;
+    --radius-sm:  12px;
+    --shadow:     0 4px 24px rgba(0,0,0,0.4);
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-sans:  'Jost', system-ui, sans-serif;
+  }
+
+  html, body {
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 52px;
+    background-image:
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(217,136,160,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 60% at 90% 100%, rgba(217,136,160,0.04) 0%, transparent 60%);
+  }
+
+  .header {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0; z-index: 100;
+    background: #1e1416;
+    border-bottom: 1px solid var(--border);
+    padding: 13px 20px 12px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand-name {
+    font-family: var(--font-serif); font-size: 19px; font-weight: 600;
+    color: var(--pink); letter-spacing: 0.02em; line-height: 1;
+  }
+  .brand-sub {
+    font-size: 10px; font-weight: 500; color: var(--text-muted);
+    letter-spacing: 0.16em; text-transform: uppercase; margin-top: 2px;
+  }
+
+  .main {
+    max-width: 480px; margin: 0 auto; padding: 18px 14px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+
+  .card {
+    background: var(--surface); border-radius: var(--radius);
+    padding: 16px; border: 1px solid var(--border); box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-family: var(--font-serif); font-size: 13px; font-weight: 400; font-style: italic;
+    color: var(--pink); letter-spacing: 0.04em; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .card-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(to right, var(--border), transparent);
+  }
+
+  .field-group { display: flex; flex-direction: column; gap: 12px; }
+  .field       { display: flex; flex-direction: column; gap: 6px; }
+  .field label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.10em;
+    text-transform: uppercase; color: var(--text-muted);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .field label .tip {
+    font-weight: 400; text-transform: none; letter-spacing: 0;
+    font-size: 10px; color: var(--text-dim);
+  }
+
+  /* 16px mínimo — abaixo disso iOS faz zoom ao focar */
+  input[type="number"] {
+    width: 100%; height: 52px;
+    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg2); font-family: var(--font-sans);
+    font-size: 16px; font-weight: 600; color: var(--text);
+    padding: 0 48px 0 16px; outline: none;
+    -webkit-appearance: none; -moz-appearance: textfield;
+    -webkit-tap-highlight-color: transparent;
+  }
+  input[type="number"]:focus { border-color: var(--pink); background: var(--surface2); }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+  .input-wrap { position: relative; }
+  .input-unit {
+    position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+    font-size: 12px; font-weight: 600; color: var(--text-dim); pointer-events: none;
+  }
+
+  .stepper {
+    display: flex;
+    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    overflow: hidden; background: var(--bg2); height: 60px;
+  }
+  .stepper-btn {
+    width: 64px; flex-shrink: 0;
+    background: transparent; border: none;
+    font-size: 28px; font-weight: 300; color: var(--pink);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none; user-select: none;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stepper-btn:active { background: rgba(217,136,160,0.18); }
+  .stepper input[type="number"] {
+    flex: 1; height: 100%;
+    border: none;
+    border-left: 1.5px solid var(--border);
+    border-right: 1.5px solid var(--border);
+    border-radius: 0; background: transparent;
+    text-align: center; font-size: 24px; font-weight: 700; padding: 0;
+  }
+
+  .disclaimer {
+    background: rgba(217,136,160,0.07);
+    border: 1px solid rgba(217,136,160,0.2);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px; margin-top: 4px;
+  }
+  .disclaimer-title {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--pink); margin-bottom: 6px;
+  }
+  .disclaimer-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 3px 0; border-bottom: 1px solid rgba(217,136,160,0.1);
+  }
+  .disclaimer-row:last-child { border-bottom: none; }
+  .disclaimer-label { font-size: 11px; color: var(--text-muted); }
+  .disclaimer-value { font-size: 12px; font-weight: 600; color: var(--pink-light); }
+  .disclaimer-highlight {
+    font-size: 11px; color: var(--text-dim); font-style: italic;
+    margin-top: 6px; line-height: 1.5;
+    border-top: 1px solid rgba(217,136,160,0.1); padding-top: 6px;
+  }
+
+  /* Toggle: <button> de largura total — funciona no iOS */
+  .toggle-btn {
+    width: 100%;
+    background: var(--bg2); border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 16px;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none; user-select: none;
+    font-family: var(--font-sans);
+    display: flex; align-items: center; justify-content: space-between;
+    text-align: left;
+  }
+  .toggle-btn.active { border-color: var(--pink); background: rgba(217,136,160,0.08); }
+  .toggle-label { display: flex; align-items: center; gap: 10px; pointer-events: none; }
+  .toggle-icon  { font-size: 18px; line-height: 1; }
+  .toggle-text  { display: flex; flex-direction: column; gap: 1px; pointer-events: none; }
+  .toggle-text strong { font-size: 13px; font-weight: 600; color: var(--text); }
+  .toggle-text span   { font-size: 10px; color: var(--text-dim); letter-spacing: 0.04em; }
+  .toggle-btn.active .toggle-text strong { color: var(--pink); }
+
+  .switch-pill {
+    width: 44px; height: 26px; border-radius: 13px;
+    background: var(--border);
+    position: relative; flex-shrink: 0;
+    pointer-events: none;
+  }
+  .switch-pill::after {
+    content: ''; display: block;
+    position: absolute; top: 3px; left: 3px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--text-muted);
+    transition: transform 0.2s, background 0.2s;
+  }
+  .toggle-btn.active .switch-pill { background: rgba(217,136,160,0.35); }
+  .toggle-btn.active .switch-pill::after { transform: translateX(18px); background: var(--pink); }
+
+  .rodadas-field { display: none; margin-top: 12px; }
+  .rodadas-field.open { display: block; }
+
+  .results-card {
+    background: var(--surface); border-radius: var(--radius); padding: 16px;
+    border: 1px solid var(--pink-deep);
+    box-shadow: 0 0 0 1px rgba(217,136,160,0.08), var(--shadow);
+  }
+  .results-card .card-title { color: var(--pink-light); }
+
+  .result-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px solid var(--border); gap: 8px;
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-label { font-size: 12px; color: var(--text-muted); font-weight: 400; flex: 1; line-height: 1.4; }
+  .result-value { font-size: 20px; font-weight: 600; color: var(--pink-light); white-space: nowrap; }
+  .result-row.hl { background: rgba(217,136,160,0.10); border-radius: var(--radius-sm); padding: 12px; margin: 4px -4px; border-bottom: none; }
+  .result-row.hl .result-value { font-size: 26px; font-weight: 700; color: var(--pink); }
+  .result-row.hl .result-label { color: var(--pink-light); font-weight: 500; }
+  .result-row.warn .result-value { color: var(--amber); }
+  .result-row.warn .result-label { color: #9A7555; }
+  .divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+  .rodadas-section { margin-top: 6px; }
+  .rodadas-section-title {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.10em; text-transform: uppercase;
+    color: var(--text-dim); margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .rodadas-section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .rodada-card { background: var(--bg2); border-radius: var(--radius-sm); border: 1px solid var(--border); margin-bottom: 8px; overflow: hidden; }
+  .rodada-card:last-child { margin-bottom: 0; }
+  .rodada-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--border); background: rgba(217,136,160,0.06); }
+  .rodada-name  { font-size: 12px; font-weight: 600; color: var(--pink); }
+  .rodada-velas { font-size: 13px; font-weight: 700; color: var(--text); }
+  .rodada-velas span { font-size: 10px; font-weight: 400; color: var(--text-dim); margin-left: 2px; }
+  .rodada-body  { display: flex; }
+  .rodada-stat  { padding: 10px 14px; flex: 1; }
+  .rodada-stat + .rodada-stat { border-left: 1px solid var(--border); }
+  .rodada-stat-label { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 3px; }
+  .rodada-stat-value { font-size: 17px; font-weight: 600; color: var(--pink-light); }
+  .rodada-card.sobra { border-color: rgba(192,149,106,0.3); }
+  .rodada-card.sobra .rodada-header { background: rgba(192,149,106,0.10); border-bottom-color: rgba(192,149,106,0.2); }
+  .rodada-card.sobra .rodada-name   { color: var(--amber); }
+  .rodada-card.sobra .rodada-velas  { color: var(--amber); }
+  .rodada-card.sobra .rodada-stat-value { color: var(--amber); }
+  .tag-sobra { font-size: 9px; font-weight: 700; text-transform: uppercase; background: rgba(192,149,106,0.2); color: var(--amber); border-radius: 4px; padding: 2px 6px; margin-left: 6px; }
+
+  .empty-state { text-align: center; padding: 28px 16px; color: var(--text-dim); font-size: 13px; line-height: 1.7; font-style: italic; }
+  .empty-icon  { font-size: 28px; margin-bottom: 8px; display: block; opacity: 0.5; }
+
+  .actions { display: flex; gap: 10px; }
+  .btn {
+    flex: 1; height: 54px; min-height: 44px;
+    border-radius: var(--radius-sm); border: 1.5px solid var(--border);
+    font-family: var(--font-sans); font-size: 13px; font-weight: 600; color: var(--text-muted);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none; user-select: none;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    background: transparent;
+  }
+  .btn:active { opacity: 0.7; }
+  .btn-copy { background: var(--pink); border-color: var(--pink); color: #fff; }
+  .btn-copy.copied { background: #7A9A6A; border-color: #7A9A6A; }
+
+  .footer-deco { text-align: center; padding: 8px 0 0; font-family: var(--font-serif); font-size: 11px; font-style: italic; color: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div>
+    <div class="brand-name">Aqua Marine Store</div>
+    <div class="brand-sub">Calculadora de Velas</div>
+  </div>
+  <div style="font-size:20px;opacity:0.5">&#127800;</div>
+</header>
+
+<main class="main">
+
+  <div class="card">
+    <div class="card-title">Dados de Producao</div>
+    <div class="field-group">
+
+      <!-- Quantidade -->
+      <div class="field">
+        <label>Quantidade de velas</label>
+        <div class="stepper">
+          <button class="stepper-btn" type="button" onclick="stepQtd(-1)">&#8722;</button>
+          <input type="number" id="qtd" value="10" min="1" max="9999" inputmode="numeric" oninput="calc()">
+          <button class="stepper-btn" type="button" onclick="stepQtd(1)">+</button>
+        </div>
+      </div>
+
+      <!-- Peso -->
+      <div class="field">
+        <label>Peso por vela <span class="tip">(gramas)</span></label>
+        <div class="input-wrap">
+          <input type="number" id="peso" value="200" min="1" inputmode="decimal" oninput="calc()">
+          <span class="input-unit">g</span>
+        </div>
+      </div>
+
+      <!-- Essencia -->
+      <div class="field">
+        <label>Essencia <span class="tip">(%)</span></label>
+        <div class="input-wrap">
+          <input type="number" id="essencia" value="8" min="0" max="100" step="0.5" inputmode="decimal" oninput="calc()">
+          <span class="input-unit">%</span>
+        </div>
+        <div class="disclaimer">
+          <div class="disclaimer-title">Referencia de peso por volume</div>
+          <div id="disc-rows"></div>
+          <div class="disclaimer-highlight">Essencia pesa ~0,88 g/ml. Use balanca, nao copo medidor.</div>
+        </div>
+      </div>
+
+      <!-- Perda -->
+      <div class="field">
+        <label>Perda <span class="tip">(padrao 5%)</span></label>
+        <div class="input-wrap">
+          <input type="number" id="perda" value="5" min="0" max="99" step="0.5" inputmode="decimal" oninput="calc()">
+          <span class="input-unit">%</span>
+        </div>
+      </div>
+
+      <!-- Toggle rodadas — <button> para funcionar no iOS -->
+      <button class="toggle-btn" id="toggle-btn" type="button" onclick="toggleRodadas()">
+        <div class="toggle-label">
+          <span class="toggle-icon">&#9654;</span>
+          <div class="toggle-text">
+            <strong>Dividir em rodadas</strong>
+            <span>Por capacidade de panela / jarra</span>
+          </div>
+        </div>
+        <div class="switch-pill"></div>
+      </button>
+
+      <div class="rodadas-field" id="rodadas-field">
+        <div class="field">
+          <label>Capacidade por rodada <span class="tip">(g)</span></label>
+          <div class="input-wrap">
+            <input type="number" id="cap_rodada" value="450" min="1" inputmode="decimal" oninput="calc()">
+            <span class="input-unit">g</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="results-card">
+    <div class="card-title">Resultados</div>
+    <div id="results-content">
+      <div class="empty-state">
+        <span class="empty-icon">&#10022;</span>
+        Preencha os campos acima.
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn" type="button" onclick="clearAll()">Limpar</button>
+    <button class="btn btn-copy" id="btn-copy" type="button" onclick="copyResults()">Copiar</button>
+  </div>
+
+  <div class="footer-deco">&#10022; Aqua Marine Store &#10022;</div>
+
+</main>
+
+<!-- Script NO FINAL do body — elementos já existem no DOM, sem precisar de DOMContentLoaded -->
+<script>
+var rodadasAtivo = false;
+var DENS = 0.88;
+var copyText = '';
+
+/* ── helpers ── */
+function g(id) { return document.getElementById(id); }
+function v(id) { var n = parseFloat(g(id).value); return isNaN(n) ? 0 : n; }
+function fmt(n, d) { return n.toFixed(d === undefined ? 1 : d).replace('.', ','); }
+function fmtG(n) { return n >= 1000 ? fmt(n/1000, 2) + ' kg' : fmt(n, 1) + ' g'; }
+
+/* ── toggle rodadas ── */
+function toggleRodadas() {
+  rodadasAtivo = !rodadasAtivo;
+  g('toggle-btn').classList.toggle('active', rodadasAtivo);
+  g('rodadas-field').classList.toggle('open', rodadasAtivo);
+  calc();
+}
+
+/* ── stepper ── */
+function stepQtd(d) {
+  var el = g('qtd');
+  var n  = parseInt(el.value) || 0;
+  el.value = Math.max(1, n + d);
+  calc();
+}
+
+/* ── disclaimer ── */
+function updateDisc() {
+  var qtd    = v('qtd');
+  var peso   = v('peso');
+  var perdaP = v('perda') / 100;
+  var essP   = v('essencia') / 100;
+  var td     = qtd * peso;
+  var tp     = (perdaP < 1 && qtd > 0 && peso > 0) ? td / (1 - perdaP) : td;
+  var essG   = tp * essP;
+
+  var html = '';
+  [10, 20, 30, 50].forEach(function(ml) {
+    html += '<div class="disclaimer-row">'
+          + '<span class="disclaimer-label">' + ml + ' ml</span>'
+          + '<span class="disclaimer-value">&#8776; ' + fmt(ml * DENS, 0) + ' g</span>'
+          + '</div>';
+  });
+  if (essG > 0) {
+    html += '<div class="disclaimer-row" style="background:rgba(217,136,160,0.09);border-radius:6px;padding:4px 6px;margin-top:4px">'
+          + '<span class="disclaimer-label" style="color:#E8AABE;font-weight:600">Esta receita</span>'
+          + '<span class="disclaimer-value">' + fmtG(essG) + ' &#8776; ' + fmt(essG/DENS, 0) + ' ml</span>'
+          + '</div>';
+  }
+  g('disc-rows').innerHTML = html;
+}
+
+/* ── cálculo ── */
+function calc() {
+  updateDisc();
+
+  var qtd    = v('qtd');
+  var peso   = v('peso');
+  var essP   = v('essencia') / 100;
+  var perdaP = v('perda') / 100;
+  var el     = g('results-content');
+
+  if (qtd <= 0 || peso <= 0) {
+    el.innerHTML = '<div class="empty-state"><span class="empty-icon">&#10022;</span>Preencha os campos acima.</div>';
+    copyText = '';
+    return;
+  }
+
+  var td   = qtd * peso;
+  var tp   = perdaP < 1 ? td / (1 - perdaP) : td;
+  var essG = tp * essP;
+  var cerG = tp - essG;
+  var pgG  = tp - td;
+
+  var h = '';
+  h += '<div class="result-row hl"><span class="result-label">Velas esperadas</span><span class="result-value">' + qtd + '</span></div>';
+  h += '<div class="divider"></div>';
+  h += '<div class="result-row hl"><span class="result-label">Total a preparar</span><span class="result-value">' + fmtG(tp) + '</span></div>';
+  h += '<div class="result-row"><span class="result-label">Cera necessaria</span><span class="result-value">' + fmtG(cerG) + '</span></div>';
+  h += '<div class="result-row"><span class="result-label">Essencia necessaria</span><span class="result-value">' + fmtG(essG) + '</span></div>';
+  h += '<div class="divider"></div>';
+  h += '<div class="result-row"><span class="result-label">Producao final esperada</span><span class="result-value">' + fmtG(td) + '</span></div>';
+  h += '<div class="result-row warn"><span class="result-label">Perda estimada</span><span class="result-value">' + fmtG(pgG) + '</span></div>';
+
+  if (rodadasAtivo) {
+    var cap = v('cap_rodada');
+    if (cap > 0) h += buildRodadas(tp, essP, perdaP, peso, cap, qtd);
+  }
+
+  el.innerHTML = h;
+  buildCopy(qtd, tp, cerG, essG, td, pgG);
+}
+
+/* ── rodadas ── */
+function buildRodadas(tp, essP, perdaP, pesoVela, cap, qtdTotal) {
+  var realPorCap = cap * (1 - perdaP);
+  var vPC = Math.floor(realPorCap / pesoVela); /* velas por rodada cheia */
+
+  if (vPC < 1) {
+    return '<div style="font-size:12px;color:#C0956A;padding:8px 0">Capacidade insuficiente para 1 vela. Aumente a capacidade por rodada.</div>';
+  }
+
+  var nCheias  = Math.floor(qtdTotal / vPC);
+  var vSobra   = qtdTotal % vPC;
+  var temSobra = vSobra > 0;
+  var nTotal   = nCheias + (temSobra ? 1 : 0);
+
+  var tpCheia  = vPC * pesoVela / (1 - perdaP);
+  var essCheia = tpCheia * essP;
+  var cerCheia = tpCheia - essCheia;
+
+  var tpSobra  = tp - tpCheia * nCheias;
+  var essSobra = tpSobra * essP;
+  var cerSobra = tpSobra - essSobra;
+
+  var lbl = nTotal === 1 ? 'rodada' : 'rodadas';
+  var h = '<div class="rodadas-section">'
+        + '<div class="rodadas-section-title">&#9654; ' + nTotal + ' ' + lbl + '</div>';
+
+  for (var i = 1; i <= nCheias; i++) {
+    h += cardRodada('Rodada ' + i, '', vPC, cerCheia, essCheia, false);
+  }
+  if (temSobra) {
+    h += cardRodada('Rodada ' + nTotal, 'sobra', vSobra, cerSobra, essSobra, true);
+  }
+
+  h += '</div>';
+  return h;
+}
+
+function cardRodada(nome, tag, velas, cera, ess, isSobra) {
+  var tagH = tag ? '<span class="tag-sobra">' + tag + '</span>' : '';
+  var cls  = isSobra ? 'rodada-card sobra' : 'rodada-card';
+  return '<div class="' + cls + '">'
+       + '<div class="rodada-header">'
+       +   '<span class="rodada-name">' + nome + tagH + '</span>'
+       +   '<span class="rodada-velas">' + velas + '<span> velas</span></span>'
+       + '</div>'
+       + '<div class="rodada-body">'
+       +   '<div class="rodada-stat"><div class="rodada-stat-label">Cera</div><div class="rodada-stat-value">' + fmtG(cera) + '</div></div>'
+       +   '<div class="rodada-stat"><div class="rodada-stat-label">Essencia</div><div class="rodada-stat-value">' + fmtG(ess) + '</div></div>'
+       + '</div>'
+       + '</div>';
+}
+
+/* ── copy ── */
+function buildCopy(qtd, tp, cerG, essG, td, pgG) {
+  copyText = 'AQUA MARINE STORE - Calculadora de Velas\n\n'
+           + 'Velas: ' + qtd + '\n'
+           + 'Total a preparar: ' + fmtG(tp) + '\n'
+           + 'Cera: ' + fmtG(cerG) + '\n'
+           + 'Essencia: ' + fmtG(essG) + '\n'
+           + 'Producao final: ' + fmtG(td) + '\n'
+           + 'Perda: ' + fmtG(pgG);
+}
+
+function copyResults() {
+  if (!copyText) return;
+  var btn = g('btn-copy');
+  function done() {
+    btn.textContent = 'Copiado!';
+    btn.classList.add('copied');
+    setTimeout(function() { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 2000);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(copyText).then(done).catch(function() { fallback(done); });
+  } else {
+    fallback(done);
+  }
+}
+function fallback(cb) {
+  var ta = document.createElement('textarea');
+  ta.value = copyText;
+  ta.setAttribute('readonly', '');
+  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { document.execCommand('copy'); cb(); } catch(e) {}
+  document.body.removeChild(ta);
+}
+
+/* ── limpar ── */
+function clearAll() {
+  g('qtd').value       = '10';
+  g('peso').value      = '200';
+  g('essencia').value  = '8';
+  g('perda').value     = '5';
+  g('cap_rodada').value = '450';
+  if (rodadasAtivo) toggleRodadas();
+  calc();
+}
+
+/* ── init — script está no fim do body, DOM já existe ── */
+calc();
+</script>
+</body>
+</html>
